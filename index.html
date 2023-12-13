@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Demo</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1040.0/aws-sdk.min.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <h1>Sentiment Analysis to suggest Spotify tracks based on the Emotion</h1>
+
+    <label for="userInput">Enter Text:</label>
+    <textarea id="userInput" rows="4" cols="50"></textarea>
+
+    <button onclick="analyzeSentiment()">Analyze Sentiment</button>
+
+    <div id="result"></div>
+
+    <script>
+        function analyzeSentiment() {
+            // Get user input
+            var userInput = document.getElementById('userInput').value;
+
+            // Check if the input is not empty
+            if (userInput.trim() === '') {
+                alert('Please enter some text.');
+                return;
+            }
+
+            // Initialize AWS SDK with credentials
+            AWS.config.update({
+                accessKeyId: awsConfig.accessKeyId,
+                secretAccessKey: awsConfig.secretAccessKey,
+                region: awsConfig.region
+            });
+
+            // Create Comprehend object
+            var comprehend = new AWS.Comprehend({
+                apiVersion: '2017-11-27'
+            });
+
+            // Prepare parameters
+            var params = {
+                LanguageCode: 'en',
+                Text: userInput
+            };
+
+            // Call Amazon Comprehend API for sentiment analysis
+            comprehend.detectSentiment(params, function(err, data) {
+                if (err) {
+                    console.error('Error analyzing sentiment:', err);
+                    document.getElementById('result').innerHTML = 'Error analyzing sentiment.';
+                } else {
+                    // Display sentiment result
+                    var sentiment = data.Sentiment;
+                    document.getElementById('result').innerHTML = '<strong>Sentiment:</strong> ' + sentiment;
+
+                    // Call Spotify API only if sentiment is available
+                    if (sentiment) {
+                        // Dynamically generate Spotify access token
+                        getSpotifyAccessToken(function(accessToken) {
+                            callSpotifyAPI(sentiment, accessToken);
+                        });
+                    }
+                }
+            });
+        }
+
+        function getSpotifyAccessToken(callback) {
+            // Use the Spotify API credentials from config.js
+            var clientId = spotifyConfig.clientId;
+            var clientSecret = spotifyConfig.clientSecret;
+
+            // Prepare the Spotify API endpoint for obtaining access token
+            var spotifyTokenUrl = 'https://accounts.spotify.com/api/token';
+
+            // Base64 encode client ID and client secret
+            var base64Credentials = btoa(`${clientId}:${clientSecret}`);
+
+            // Make an AJAX request to obtain the access token
+            $.ajax({
+                url: spotifyTokenUrl,
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${base64Credentials}`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: 'grant_type=client_credentials',
+                success: function(response) {
+                    // Extract the access token from the response
+                    var accessToken = response.access_token;
+
+                    // Pass the access token to the callback function
+                    callback(accessToken);
+                },
+                error: function(error) {
+                    console.error('Error obtaining Spotify access token:', error);
+                    document.getElementById('result').innerHTML = 'Error obtaining Spotify access token.';
+                }
+            });
+        }
+
+        function callSpotifyAPI(sentiment, accessToken) {
+            // Prepare the Spotify API endpoint for searching
+            var spotifyApiUrl = 'https://api.spotify.com/v1/search';
+
+            // Specify the type of entity to search (track, artist, album, etc.)
+            var searchType = 'track';
+
+            // Add your sentiment-based keywords for searching
+            var keywords = getKeywordsBySentiment(sentiment);
+
+            // Build the query string
+            var queryString = `q=${keywords}&type=${searchType}&limit=5`;
+
+            // Make an AJAX request to the Spotify API using the dynamically generated access token
+            $.ajax({
+                url: `${spotifyApiUrl}?${queryString}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                success: function(response) {
+                    // Handle the response from the Spotify API
+                    displayResults(response);
+                },
+                error: function(error) {
+                    console.error('Error calling Spotify API:', error);
+                    document.getElementById('result').innerHTML = 'Error calling Spotify API.';
+                }
+            });
+        }
+
+        function getKeywordsBySentiment(sentiment) {
+            // Add your logic to determine keywords based on sentiment
+            // For simplicity, this example uses a broader set of keywords; adjust as needed
+            switch (sentiment) {
+                case 'POSITIVE':
+                    return 'joyful cheerful upbeat energetic positive lively happy uplifting bright celebratory';
+                case 'NEGATIVE':
+                    return 'sad melancholic somber mellow reflective gloomy emotional tearful heartbreaking';
+                default:
+                    return 'neutral calm soothing relaxing tranquil mild easygoing balanced ambient serene';
+            }
+        }
+
+        function displayResults(response) {
+            // Extract and display relevant information from the Spotify API response
+            var tracks = response.tracks.items;
+
+            // Display top 5 tracks
+            var resultContent = '<h2>Top 5 Tracks:</h2><ul class="track-list">';
+
+            for (var i = 0; i < Math.min(5, tracks.length); i++) {
+                var track = tracks[i];
+                resultContent += `<li class="track-list-item">${i + 1}. <strong>${track.name}</strong> by ${track.artists[0].name} - <a href="${track.external_urls.spotify}" target="_blank">Listen Here</a></li>`;
+            }
+
+            resultContent += '</ul>';
+
+            // Display the results on the page
+            document.getElementById('result').innerHTML += resultContent;
+        }
+    </script>
+</body>
+</html>

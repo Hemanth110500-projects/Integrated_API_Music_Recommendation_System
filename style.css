@@ -1,0 +1,55 @@
+body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    margin: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+label {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+textarea {
+    width: 70%;
+    height: 100px;
+    margin-bottom: 10px;
+    padding: 5px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+}
+
+#result {
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+.track-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.track-list-item {
+    margin-bottom: 10px;
+}
+
+a {
+    color: #1E90FF;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
