@@ -39,7 +39,9 @@ Build the Docker image and run the container:
 * Build, Tag, and Push Docker Image to ECR
 
 **docker build -t REPOSITORY_NAME .**
+
 **docker tag REPOSITORY_NAME:latest 826797162857.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest**
+
 **docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest**
 
 * Verify ECR Image Pull
