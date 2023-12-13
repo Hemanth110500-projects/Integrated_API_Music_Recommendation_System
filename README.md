@@ -12,7 +12,7 @@ Before running the application, ensure that you have the following:
 **Setting up the Environment**
 
 1. Clone the repository:
-* git clone https://github.com/yourusername/sentiment-analysis-demo.git
+* git clone https://github.com/Hemanth110500-projects/sentiment-analysis-demo.git
 
 2. Navigate to the project directory:
 * cd sentiment-analysis-demo
