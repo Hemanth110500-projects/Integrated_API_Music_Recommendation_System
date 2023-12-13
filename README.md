@@ -27,6 +27,30 @@ Build the Docker image and run the container:
 * docker build -t sentiment-analysis-demo .
 * docker run -p 8080:80 sentiment-analysis-demo
 
+**Deploying to Amazon ECS**
+
+* Set up Amazon ECR Repository
+
+* aws ecr create-repository --repository-name REPOSITORY_NAME
+
+* Authenticate Docker with ECR
+
+* aws ecr get-login-password --region us-east-1 | docker login --username AWS password-stdin YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+
+* Build, Tag, and Push Docker Image to ECR
+
+* docker build -t REPOSITORY_NAME .
+* docker tag REPOSITORY_NAME:latest 826797162857.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest
+* docker push YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest
+
+* Verify ECR Image Pull
+
+* docker pull 826797162857.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest
+
+* Run the Deployed Image Locally
+
+* docker run -p 8000:80 YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:latest
+
 
 The application will be accessible at http://localhost:8080 in your browser.
 
